@@ -56,8 +56,9 @@ router.post('/', (req, res) => {
         })
     }
     else post.insert(req.body)
-        .then((result) => {
-        res.status(201).json({result})
+        .then(async (result) => {
+            const newPost = await post.findById(result.id)
+        res.status(201).json(newPost)
         }).catch(() => {
             res.status(500).json({ 
                 message: "There was an error while saving the post to the database"
@@ -69,14 +70,14 @@ router.post('/', (req, res) => {
 // put requests
 router.put('/:id', async (req, res) => {
     const oldPost = await post.findById(req.params.id)
-    if (!req.body.title || !req.body.contents) {
+    if (!oldPost) res.status(404).json({
+        message: "The post with the specified ID does not exist"
+    })
+    else if (!req.body.title || !req.body.contents) {
         res.status(400).json({
             message: "Please provide title and contents for the post"
         })
     }
-    if (!oldPost) res.status(404).json({
-        message: "The post with the specified ID does not exist"
-    })
     else post.update(req.params.id, req.body) 
         .then(async (result) => {
         res.status(200).json(await post.findById(result))
